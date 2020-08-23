@@ -1,0 +1,33 @@
+version: '2'
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+    volumes:
+      - .:/var/www/code
+    ports:
+      - "80:80"
+    working_dir: /var/www/code
+    env_file: docker/docker.env
+    links:
+      - mysql
+
+  node:
+    build:
+      context: .
+      dockerfile: docker/node/Dockerfile
+    working_dir: /app
+    env_file: docker/docker.env
+    volumes:
+      - .:/app
+    # symlink to node modules has to happen after code volume is mounted
+    command: bash -c "ln -sf /node_modules node_modules && sleep infinity"
+
+  mysql:
+    image: mysql:5.7
+    env_file: docker/docker.env
+    volumes:
+      - ./docker/mysql/data:/var/lib/mysql
+    ports:
+      - 3306:3306
